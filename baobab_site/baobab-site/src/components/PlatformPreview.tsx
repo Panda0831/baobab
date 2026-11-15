@@ -1,5 +1,7 @@
 import React, { useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import { DURATION, EASE } from '../motion'
+import { useIsMobile } from '../hooks'
 
 const views = [
   {
@@ -33,39 +35,94 @@ const views = [
 
 const PlatformPreview: React.FC = () => {
   const [activeIndex, setActiveIndex] = useState(0)
+  const [direction, setDirection] = useState(1)
   const reduceMotion = useReducedMotion()
+  const isMobile = useIsMobile()
   const sectionRef = useRef<HTMLElement>(null)
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([])
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'end start'] })
   const windowY = useTransform(scrollYProgress, [0, 0.48, 1], [74, 0, -38])
   const windowScale = useTransform(scrollYProgress, [0, 0.45, 1], [0.93, 1, 0.97])
   const introY = useTransform(scrollYProgress, [0, 0.65, 1], [32, 0, -18])
   const activeView = views[activeIndex]
+  const calm = Boolean(reduceMotion) || isMobile
+
+  const goTo = (index: number) => {
+    const next = (index + views.length) % views.length
+    if (next === activeIndex) return
+    setDirection(next > activeIndex ? 1 : -1)
+    setActiveIndex(next)
+  }
+
+  const selectTab = (index: number) => {
+    const next = (index + views.length) % views.length
+    goTo(index)
+    tabRefs.current[next]?.focus()
+  }
+
+  const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+    switch (event.key) {
+      case 'ArrowRight':
+      case 'ArrowDown':
+        event.preventDefault()
+        selectTab(index + 1)
+        break
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        event.preventDefault()
+        selectTab(index - 1)
+        break
+      case 'Home':
+        event.preventDefault()
+        selectTab(0)
+        break
+      case 'End':
+        event.preventDefault()
+        selectTab(views.length - 1)
+        break
+      default:
+        break
+    }
+  }
 
   return (
     <section className="platform" id="plateforme" ref={sectionRef}>
       <div className="container">
         <motion.div
           className="platform-intro"
-          style={{ y: reduceMotion ? 0 : introY }}
+          style={{ y: calm ? 0 : introY }}
           initial={reduceMotion ? false : { opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.55, ease: 'easeOut' }}
+          transition={{ duration: reduceMotion ? 0 : DURATION.base, ease: EASE }}
         >
           <span className="eyebrow">Une idée, plusieurs usages</span>
           <h2>Des outils numériques qui rendent les projets plus lisibles.</h2>
           <p>Les bons produits rassemblent ce qui est aujourd’hui dispersé. Cette maquette illustre notre façon d’aborder une interface : clarifier les données, relier les usages et accompagner les équipes.</p>
-          <div className="platform-tabs" aria-label="Explorer les usages de la plateforme">
+          <div className="platform-tabs" role="tablist" aria-label="Explorer les usages de la plateforme">
             {views.map((view, index) => (
               <button
                 key={view.label}
+                ref={(element) => { tabRefs.current[index] = element }}
+                id={`platform-tab-${index}`}
                 type="button"
+                role="tab"
                 className={`platform-tab${index === activeIndex ? ' is-active' : ''}`}
-                aria-pressed={index === activeIndex}
+                aria-selected={index === activeIndex}
                 aria-controls="platform-demo"
-                onClick={() => setActiveIndex(index)}
+                tabIndex={index === activeIndex ? 0 : -1}
+                onClick={() => goTo(index)}
+                onKeyDown={(event) => handleTabKeyDown(event, index)}
               >
-                <span className="tab-index">0{index + 1}</span>{view.label}
+                {index === activeIndex && (
+                  <motion.span
+                    className="tab-pill"
+                    layoutId="platform-tab-pill"
+                    aria-hidden="true"
+                    transition={reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 420, damping: 34, mass: 0.6 }}
+                  />
+                )}
+                <span className="tab-index" aria-hidden="true">0{index + 1}</span>{view.label}
               </button>
             ))}
           </div>
@@ -74,11 +131,14 @@ const PlatformPreview: React.FC = () => {
         <motion.div
           id="platform-demo"
           className="platform-window"
-          style={{ y: reduceMotion ? 0 : windowY, scale: reduceMotion ? 1 : windowScale }}
+          role="tabpanel"
+          aria-labelledby={`platform-tab-${activeIndex}`}
+          tabIndex={0}
+          style={{ y: calm ? 0 : windowY, scale: calm ? 1 : windowScale }}
           initial={reduceMotion ? false : { opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true, amount: 0.25 }}
-          transition={{ duration: 0.7, ease: 'easeOut' }}
+          transition={{ duration: reduceMotion ? 0 : 0.7, ease: EASE }}
         >
           <div className="platform-topbar">
             <div className="window-controls" aria-hidden="true"><i /><i /><i /></div>
@@ -100,10 +160,10 @@ const PlatformPreview: React.FC = () => {
                   <AnimatePresence mode="wait" initial={false}>
                     <motion.div
                       key={activeView.kicker}
-                      initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
-                      transition={{ duration: reduceMotion ? 0 : 0.22 }}
+                      initial={reduceMotion ? false : { opacity: 0, x: 16 * direction }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={reduceMotion ? undefined : { opacity: 0, transition: { duration: 0.12 } }}
+                      transition={{ duration: reduceMotion ? 0 : DURATION.short, ease: EASE }}
                     >
                       <h3>{activeView.kicker}</h3>
                     </motion.div>
@@ -122,7 +182,7 @@ const PlatformPreview: React.FC = () => {
                       <motion.path
                         key={activeView.label}
                         d={activeIndex === 0 ? 'M0 114 C50 105 53 74 106 85 S163 102 207 62 262 75 309 47 365 63 410 25 455 31 480 12' : activeIndex === 1 ? 'M0 96 C44 112 65 65 110 76 S165 42 210 60 271 27 316 44 369 18 416 31 458 13 480 20' : 'M0 123 C45 103 64 109 106 75 S159 91 208 52 263 69 310 55 364 32 410 42 452 19 480 10'}
-                        fill="none" stroke="#6f9854" strokeWidth="3" strokeLinecap="round"
+                        fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"
                         initial={reduceMotion ? false : { pathLength: 0 }} animate={{ pathLength: 1 }}
                         transition={{ duration: reduceMotion ? 0 : 0.8, ease: 'easeInOut' }}
                       />
@@ -138,15 +198,15 @@ const PlatformPreview: React.FC = () => {
                     <motion.div
                       key={activeView.label}
                       className="insight-content"
-                      initial={reduceMotion ? false : { opacity: 0, x: 8 }}
+                      initial={reduceMotion ? false : { opacity: 0, x: 16 * direction }}
                       animate={{ opacity: 1, x: 0 }}
-                      exit={reduceMotion ? undefined : { opacity: 0, x: -8 }}
-                      transition={{ duration: reduceMotion ? 0 : 0.2 }}
+                      exit={reduceMotion ? undefined : { opacity: 0, transition: { duration: 0.12 } }}
+                      transition={{ duration: reduceMotion ? 0 : DURATION.short, ease: EASE }}
                     >
                       <p className="insight-label">{activeView.badge}</p>
                       <div className="mini-bars" aria-hidden="true">
                         {activeView.bars.map((height, index) => (
-                          <motion.i key={`${activeView.label}-${index}`} initial={reduceMotion ? false : { scaleY: 0.2 }} animate={{ scaleY: 1 }} transition={{ duration: 0.45, delay: reduceMotion ? 0 : index * 0.035 }} style={{ height: `${height}%`, transformOrigin: 'bottom' }} />
+                          <motion.i key={`${activeView.label}-${index}`} initial={reduceMotion ? false : { scaleY: 0.15 }} animate={{ scaleY: 1 }} transition={{ duration: reduceMotion ? 0 : 0.42, delay: reduceMotion ? 0 : index * 0.03, ease: EASE }} style={{ height: `${height}%`, transformOrigin: 'bottom' }} />
                         ))}
                       </div>
                       <ul>{activeView.rows.map((row) => <li key={row}><span />{row}</li>)}</ul>
@@ -160,10 +220,10 @@ const PlatformPreview: React.FC = () => {
                   key={activeView.title}
                   className="platform-footer-note"
                   aria-live="polite"
-                  initial={reduceMotion ? false : { opacity: 0, y: 7 }}
+                  initial={reduceMotion ? false : { opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={reduceMotion ? undefined : { opacity: 0, y: -7 }}
-                  transition={{ duration: reduceMotion ? 0 : 0.2 }}
+                  exit={reduceMotion ? undefined : { opacity: 0, transition: { duration: 0.12 } }}
+                  transition={{ duration: reduceMotion ? 0 : DURATION.short, ease: EASE }}
                 >
                   <span className="status-pulse" />
                   <div><strong>{activeView.title}</strong><small>{activeView.copy}</small></div>

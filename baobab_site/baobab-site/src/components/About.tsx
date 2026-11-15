@@ -1,5 +1,7 @@
 import React, { useRef } from 'react'
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import { DURATION, EASE, fadeUpItem, stagger } from '../motion'
+import { useIsMobile } from '../hooks'
 
 const principles = [
   ['01', 'Comprendre', 'Partir du terrain, des contraintes et des personnes.', 'observe'],
@@ -9,6 +11,8 @@ const principles = [
 
 const About: React.FC = () => {
   const reduceMotion = useReducedMotion()
+  const isMobile = useIsMobile()
+  const calm = Boolean(reduceMotion) || isMobile
   const sectionRef = useRef<HTMLElement>(null)
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'end start'] })
   const introY = useTransform(scrollYProgress, [0, 0.48, 1], [36, 0, -20])
@@ -20,20 +24,20 @@ const About: React.FC = () => {
       <div className="method-glow method-glow-one" aria-hidden="true" />
       <div className="method-glow method-glow-two" aria-hidden="true" />
       <div className="container">
-        <motion.div className="method-intro" style={{ y: reduceMotion ? 0 : introY }} initial={reduceMotion ? false : { opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: 0.65 }}>
+        <motion.div className="method-intro" style={{ y: calm ? 0 : introY }} initial={reduceMotion ? false : { opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: reduceMotion ? 0 : DURATION.base, ease: EASE }}>
           <span className="eyebrow">Notre approche</span>
           <div><h2>La technologie doit éclaircir le quotidien.</h2><p>Nous partons du réel pour concevoir des expériences numériques qui trouvent naturellement leur place dans le travail des équipes et dans la vie de leurs utilisateurs.</p></div>
         </motion.div>
 
         <div className="method-stage">
-          <motion.div className="method-story" initial={reduceMotion ? false : { opacity: 0, x: -24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.28 }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}>
+          <motion.div className="method-story" initial={reduceMotion ? false : { opacity: 0, x: -24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.28 }} transition={{ duration: reduceMotion ? 0 : DURATION.long, ease: EASE }}>
             <p className="method-label">UN PARTENAIRE IMPLIQUÉ</p>
             <p className="method-copy">Baobab est née d’une conviction simple : les outils numériques doivent aider les personnes à mieux avancer, pas ajouter de complexité. Notre équipe reste proche des besoins, des décisions et de ce qui rend un produit réellement utile.</p>
             <div className="method-note"><span aria-hidden="true">B.</span><p>Une petite équipe, avec le temps d’écouter et l’envie de bien faire.</p></div>
             <motion.a href="#contact" className="secondary-button" whileHover={reduceMotion ? undefined : { y: -3 }} whileTap={reduceMotion ? undefined : { scale: 0.98 }}>Rencontrez-nous <span aria-hidden="true">↗</span></motion.a>
           </motion.div>
 
-          <motion.div className="method-artwork" style={{ y: reduceMotion ? 0 : artworkY, rotate: reduceMotion ? 0 : artworkRotate }} initial={reduceMotion ? false : { opacity: 0, scale: 0.92 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}>
+          <motion.div className="method-artwork" style={{ y: calm ? 0 : artworkY, rotate: calm ? 0 : artworkRotate }} initial={reduceMotion ? false : { opacity: 0, scale: 0.94 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: reduceMotion ? 0 : DURATION.long, ease: EASE }}>
             <div className="art-orbit art-orbit-one" aria-hidden="true" />
             <motion.div className="art-orbit art-orbit-two" aria-hidden="true" animate={reduceMotion ? undefined : { rotate: 360 }} transition={{ duration: 28, repeat: Infinity, ease: 'linear' }} />
             <div className="art-window">
@@ -49,8 +53,8 @@ const About: React.FC = () => {
           </motion.div>
         </div>
 
-        <motion.div className="method-principles" initial={reduceMotion ? false : 'hidden'} whileInView="visible" viewport={{ once: true, amount: 0.2 }} variants={{ hidden: {}, visible: { transition: { staggerChildren: reduceMotion ? 0 : 0.12 } } }}>
-          {principles.map(([number, title, copy, icon]) => <motion.article key={number} variants={{ hidden: { opacity: 0, y: reduceMotion ? 0 : 24 }, visible: { opacity: 1, y: 0 } }} transition={{ duration: reduceMotion ? 0 : 0.55, ease: [0.22, 1, 0.36, 1] }} whileHover={reduceMotion ? undefined : { y: -6 }}>
+        <motion.div className="method-principles" initial={reduceMotion ? false : 'hidden'} whileInView="visible" viewport={{ once: true, amount: 0.2 }} variants={stagger(reduceMotion, 0.1)}>
+          {principles.map(([number, title, copy, icon]) => <motion.article key={number} variants={fadeUpItem(reduceMotion, 24)} transition={{ duration: reduceMotion ? 0 : DURATION.base, ease: EASE }} whileHover={reduceMotion ? undefined : { y: -6 }}>
             <div className={`principle-illustration ${icon}`} aria-hidden="true"><i /><i /><i /></div>
             <span>{number}</span><h3>{title}</h3><p>{copy}</p>
           </motion.article>)}

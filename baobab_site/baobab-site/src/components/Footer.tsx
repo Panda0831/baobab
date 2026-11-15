@@ -1,5 +1,7 @@
 import React from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
+import { site } from '../content'
+import logo from '../baobab-site/assets/logo-baobab.png'
 
 const Footer: React.FC = () => {
   const reduceMotion = useReducedMotion()
@@ -28,18 +30,28 @@ const Footer: React.FC = () => {
           <a href="#services">Solutions</a>
           <a href="#plateforme">Plateforme</a>
           <a href="#about">À propos</a>
+          <a href="#methode">Méthode</a>
           <a href="#equipe">Équipe</a>
+          <a href="#faq">Questions fréquentes</a>
         </motion.nav>
         <motion.div className="footer-social footer-discover" variants={item} transition={{ duration: 0.45, ease: 'easeOut' }}>
-          <span>À découvrir</span>
+          <span>Un projet en tête ?</span>
           <motion.a
-            href="#plateforme"
+            href="#contact"
             className="footer-discover-link"
             whileHover={reduceMotion ? undefined : { x: 4 }}
           >
-            L’aperçu de la plateforme <span aria-hidden="true">↗</span>
+            Parlons de votre projet <span aria-hidden="true">↗</span>
           </motion.a>
-          <p>Un projet numérique, une idée à explorer ? Parlons-en.</p>
+          <p>Décrivez votre besoin : le formulaire prépare un e-mail prêt à envoyer.</p>
+          <a className="footer-email" href={`mailto:${site.email}`}>{site.email}</a>
+        </motion.div>
+        <motion.div className="footer-signature" variants={item} transition={{ duration: 0.45, ease: 'easeOut' }}>
+          <img className="footer-signature-tree" src={logo} alt="" aria-hidden="true" width="112" height="112" loading="lazy" decoding="async" />
+          <div>
+            <p className="footer-signature-name">Baobab<span aria-hidden="true">.</span></p>
+            <p className="footer-signature-line">La technologie qui fait avancer vos idées.</p>
+          </div>
         </motion.div>
         <motion.div className="footer-bottom" variants={item} transition={{ duration: 0.45, ease: 'easeOut' }}>
           <p>© {new Date().getFullYear()} Baobab. Tous droits réservés.</p>
