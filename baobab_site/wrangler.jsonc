@@ -1,0 +1,15 @@
+{
+  // Configuration Cloudflare Workers (assets statiques) pour le site Baobab.
+  // Le build Vite est généré dans ./dist depuis baobab-site/ (root = ..).
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "baobab-site",
+  "compatibility_date": "2026-11-15",
+  "assets": {
+    "directory": "./dist",
+    // Site one-page : toute route inconnue renvoie index.html.
+    "not_found_handling": "single-page-application"
+  },
+  "observability": {
+    "enabled": true
+  }
+}
