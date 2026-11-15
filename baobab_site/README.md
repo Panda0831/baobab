@@ -1,7 +1,7 @@
 # Baobab
 
 Site vitrine React + Vite de Baobab, agence technologique qui conçoit des solutions numériques pour tous les secteurs.
-Il est déployé sur Cloudflare Workers (assets statiques) : https://baobab-site.fanambymanjaka9.workers.dev
+Il est déployé sur Cloudflare Workers (assets statiques) : https://baobab.strart.workers.dev
 
 ## Structure
 
