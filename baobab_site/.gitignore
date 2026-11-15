@@ -1,19 +1,22 @@
 # Dependencies
 node_modules/
-baobab-site/node_modules/
 
 # Build output
 dist/
-baobab-site/dist/
+
+# Agent skills (copies installées, un dossier par outil)
+skills/
+.posit/assistant/skills/
 
 # Tooling caches
 .vite/
-baobab-site/.vite/
+.wrangler/
 *.tsbuildinfo
 
 # Local environment configuration
 .env
 .env.*
+.dev.vars
 !.env.example
 
 # Logs

@@ -1,6 +1,6 @@
 {
   // Configuration Cloudflare Workers (assets statiques) pour le site Baobab.
-  // Le build Vite est généré dans ./dist depuis baobab-site/ (root = ..).
+  // `npm run deploy` depuis ce dossier : build Vite dans ./dist puis upload.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "baobab-site",
   "compatibility_date": "2026-11-15",

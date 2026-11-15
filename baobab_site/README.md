@@ -1,23 +1,40 @@
 # Baobab
 
-Site vitrine React et Vite de Baobab, agence technologique qui conçoit des solutions numériques pour tous les secteurs.
+Site vitrine React + Vite de Baobab, agence technologique qui conçoit des solutions numériques pour tous les secteurs.
+Il est déployé sur Cloudflare Workers (assets statiques) : https://baobab-site.fanambymanjaka9.workers.dev
+
+## Structure
+
+```
+.
+├── index.html          # page d'entrée Vite (#root + /src/main.tsx)
+├── src/                # composants React, styles, contenus, assets
+│   ├── components/
+│   └── assets/
+├── public/             # fichiers copiés tels quels (favicon, _headers…)
+├── dist/               # build Vite (généré, ignoré par git)
+├── wrangler.jsonc      # configuration Cloudflare Workers (assets → ./dist)
+└── package.json        # scripts dev / build / preview / deploy
+```
 
 ## Lancer en local
 
 ```sh
-cd baobab-site
 npm install
 npm run dev
 ```
 
-Vite affiche l’URL locale à ouvrir dans le navigateur.
-
 ## Vérifier et compiler
 
 ```sh
-cd baobab-site
 npx tsc --noEmit
 npm run build
 ```
 
-Le HTML d’entrée est à la racine du dépôt ; la configuration Vite pointe vers ce dossier.
+## Déployer
+
+```sh
+npm run deploy
+```
+
+La commande compile puis publie `dist/` sur Cloudflare Workers. Elle suppose d'être connecté (`npx wrangler login`) ; rien d'autre à configurer.
