@@ -1,9 +1,17 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { gsap, revealHeader } from '../gsap'
+import { useScrollScene } from '../scroll'
+import { fadeUpItem, stagger } from '../motion'
 import barsonPhoto from '../baobab-site/assets/barson.jpeg'
 import tsioryPhoto from '../baobab-site/assets/tsiory.jpeg'
 import fitiavanaPhoto from '../baobab-site/assets/sariaka.jpeg'
 import tiahPhoto from '../baobab-site/assets/tiah.jpg'
+import tynoPhoto from '../baobab-site/assets/tyno.jpeg'
+import mikajyPhoto from '../baobab-site/assets/mikajy.jpeg'
+import ryanPhoto from '../baobab-site/assets/ryan.jpg'
+import erickPhoto from '../baobab-site/assets/eric.jpg'
+import andyPhoto from '../baobab-site/assets/andy.jpeg'
 
 type Pole = 'direction' | 'croissance' | 'technique'
 
@@ -30,30 +38,70 @@ const poles: PoleFilter[] = [
 const members: TeamMember[] = [
   { name: 'Fanamby', role: 'CEO', pole: 'direction' },
   { name: 'Tiah', role: 'Assistant CEO · Relation client', pole: 'direction', photo: tiahPhoto },
-  { name: 'Tyno', role: 'Lead community manager', pole: 'croissance' },
-  { name: 'Nick', role: 'Community manager', pole: 'croissance' },
+  { name: 'Tyno', role: 'Lead community manager', pole: 'croissance', photo: tynoPhoto },
   { name: 'Barson', role: 'Lead partenariat & affiliation', pole: 'croissance', photo: barsonPhoto },
-  { name: 'Cédric', role: 'Partenariat & affiliation', pole: 'croissance' },
   { name: 'Fitiavana', role: 'Lead relation client', pole: 'croissance', photo: fitiavanaPhoto },
   { name: 'Tsiory', role: 'Lead commercial & finance', pole: 'croissance', photo: tsioryPhoto },
-  { name: 'Mikajy', role: 'Commercial & finance', pole: 'croissance' },
-  { name: 'Ryan', role: 'Développeur full-stack', pole: 'technique' },
-  { name: 'Andy', role: 'Développeur full-stack', pole: 'technique' },
-  { name: 'Erick', role: 'Développeur full-stack', pole: 'technique' },
+  { name: 'Mikajy', role: 'Commercial & finance', pole: 'croissance', photo: mikajyPhoto },
+  { name: 'Ryan', role: 'Développeur full-stack', pole: 'technique', photo: ryanPhoto },
+  { name: 'Andy', role: 'Développeur full-stack', pole: 'technique', photo: andyPhoto },
+  { name: 'Erick', role: 'Développeur full-stack', pole: 'technique', photo: erickPhoto },
 ]
 
 const Team: React.FC = () => {
   const reduceMotion = useReducedMotion()
+  const sectionRef = useRef<HTMLElement>(null)
   const [activePole, setActivePole] = useState<Pole | 'tous'>('tous')
   const visibleMembers = activePole === 'tous' ? members : members.filter((member) => member.pole === activePole)
 
+  // En-tête en rideau + portraits dévoilés par un cache qui monte, une seule
+  // fois à l'arrivée. Les membres filtrés ensuite gardent leur état révélé.
+  useScrollScene(sectionRef, ({ scope, q }) => {
+    const header = scope.querySelector('.section-header')
+    const cleanupHeader = header ? revealHeader(header) : undefined
+
+    const portraits = q('.member-portrait')
+    portraits.forEach((portrait, index) => {
+      const image = portrait.querySelector<HTMLElement>('img')
+      const delay = (index % 4) * 0.05
+
+      gsap.set(portrait, { clipPath: 'inset(100% 0% 0% 0%)', webkitClipPath: 'inset(100% 0% 0% 0%)' })
+      gsap.to(portrait, {
+        clipPath: 'inset(0% 0% 0% 0%)',
+        webkitClipPath: 'inset(0% 0% 0% 0%)',
+        duration: 0.9,
+        delay,
+        ease: 'power4.inOut',
+        scrollTrigger: { trigger: portrait, start: 'top 90%', once: true },
+      })
+
+      if (image) {
+        gsap.fromTo(
+          image,
+          { scale: 1.12 },
+          {
+            scale: 1,
+            duration: 1.15,
+            delay,
+            ease: 'power3.out',
+            // Rendu au CSS après révélation pour ne pas bloquer le survol.
+            clearProps: 'transform',
+            scrollTrigger: { trigger: portrait, start: 'top 90%', once: true },
+          },
+        )
+      }
+    })
+
+    return () => cleanupHeader?.()
+  })
+
   return (
-    <section id="equipe" className="team" aria-labelledby="team-title">
+    <section id="equipe" className="team" ref={sectionRef} aria-labelledby="team-title">
       <div className="container">
         <div className="section-header">
           <span className="eyebrow">Une équipe engagée</span>
-          <h2 id="team-title">12 talents, un même élan</h2>
-          <p>Une équipe tech aux expertises complémentaires, réunie pour concevoir des solutions numériques utiles et adaptées à chaque projet.</p>
+          <h2 id="team-title">10 talents, un même élan</h2>
+          <p>Des expertises complémentaires, une même exigence : des outils utiles.</p>
         </div>
 
         <div className="team-filters" role="group" aria-label="Filtrer l’équipe par pôle">
@@ -87,16 +135,22 @@ const Team: React.FC = () => {
           {visibleMembers.length} profils affichés.
         </p>
 
-        <motion.div className="team-grid" layout>
+        <motion.div
+          className="team-grid"
+          layout
+          initial={reduceMotion ? false : 'hidden'}
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.08 }}
+          variants={stagger(reduceMotion, 0.055)}
+        >
           <AnimatePresence mode="popLayout" initial={false}>
             {visibleMembers.map((member) => (
               <motion.article
                 layout
                 key={member.name}
                 className="team-member"
-                initial={reduceMotion ? false : { opacity: 0, y: 16, scale: 0.97 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={reduceMotion ? undefined : { opacity: 0, scale: 0.97, transition: { duration: 0.16 } }}
+                variants={fadeUpItem(reduceMotion, 34)}
+                exit={reduceMotion ? undefined : { opacity: 0, scale: 0.96, transition: { duration: 0.16 } }}
                 transition={reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 260, damping: 28 }}
                 whileHover={reduceMotion ? undefined : { y: -6 }}
               >

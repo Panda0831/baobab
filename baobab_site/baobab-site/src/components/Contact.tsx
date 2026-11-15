@@ -1,6 +1,7 @@
-import React, { FormEvent, useEffect, useRef, useState } from 'react'
+import React, { FormEvent, useLayoutEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { services, site, SERVICE_EVENT } from '../content'
+import { gsap } from '../gsap'
 import { DURATION, EASE } from '../motion'
 
 const OTHER_SUBJECT = 'Autre demande'
@@ -56,6 +57,7 @@ function buildMailto(form: FormState) {
 
 const Contact: React.FC = () => {
   const reduceMotion = useReducedMotion()
+  const sectionRef = useRef<HTMLElement>(null)
   const [form, setForm] = useState<FormState>(emptyForm)
   const [errors, setErrors] = useState<Errors>({})
   const [status, setStatus] = useState<'idle' | 'ready'>('idle')
@@ -65,7 +67,7 @@ const Contact: React.FC = () => {
   const noticeRef = useRef<HTMLParagraphElement>(null)
 
   // Une carte de service préremplit le sujet et ramène l'utilisateur sur le formulaire.
-  useEffect(() => {
+  React.useEffect(() => {
     const onService = (event: Event) => {
       const id = (event as CustomEvent<string>).detail
       const service = services.find((item) => item.id === id)
@@ -77,6 +79,53 @@ const Contact: React.FC = () => {
     }
     window.addEventListener(SERVICE_EVENT, onService)
     return () => window.removeEventListener(SERVICE_EVENT, onService)
+  }, [])
+
+  // Entrée élégante : colonnes révélées en cascade, CTA aimanté au pointeur fin.
+  useLayoutEffect(() => {
+    const mm = gsap.matchMedia()
+    mm.add('(prefers-reduced-motion: no-preference)', () => {
+      const scope = gsap.utils.selector(sectionRef)
+      const copyItems = scope('.contact-copy > *')
+      const formItems = scope('.contact-form > *')
+      gsap.set(copyItems, { autoAlpha: 0, y: 22 })
+      gsap.set(formItems, { autoAlpha: 0, y: 26 })
+      gsap.to(copyItems, {
+        autoAlpha: 1, y: 0, duration: 0.8, stagger: 0.07, ease: 'power4.out',
+        scrollTrigger: { trigger: scope('.contact-copy')[0], start: 'top 78%', once: true },
+      })
+      gsap.to(formItems, {
+        autoAlpha: 1, y: 0, duration: 0.8, stagger: 0.055, ease: 'power4.out',
+        scrollTrigger: { trigger: scope('.contact-form')[0], start: 'top 80%', once: true },
+      })
+
+      if (window.matchMedia('(pointer: fine)').matches) {
+        const cta = scope('.form-submit-row .cta-button')[0] as HTMLElement | undefined
+        const zone = scope('.form-submit-row')[0] as HTMLElement | undefined
+        if (cta && zone) {
+          const xTo = gsap.quickTo(cta, 'x', { duration: 0.4, ease: 'power3' })
+          const yTo = gsap.quickTo(cta, 'y', { duration: 0.4, ease: 'power3' })
+          const move = (event: PointerEvent) => {
+            const rect = cta.getBoundingClientRect()
+            xTo((event.clientX - rect.left - rect.width / 2) * 0.16)
+            yTo((event.clientY - rect.top - rect.height / 2) * 0.26)
+          }
+          const leave = () => {
+            xTo(0)
+            yTo(0)
+          }
+          zone.addEventListener('pointermove', move)
+          zone.addEventListener('pointerleave', leave)
+          return () => {
+            zone.removeEventListener('pointermove', move)
+            zone.removeEventListener('pointerleave', leave)
+            gsap.set(cta, { x: 0, y: 0 })
+          }
+        }
+      }
+      return undefined
+    })
+    return () => mm.revert()
   }, [])
 
   const updateField = (field: keyof FormState) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -134,12 +183,12 @@ const Contact: React.FC = () => {
   const describedBy = (field: keyof FormState) => (errors[field] ? `contact-${field}-error` : undefined)
 
   return (
-    <section id="contact" className="contact" aria-labelledby="contact-title">
+    <section id="contact" className="contact" ref={sectionRef} aria-labelledby="contact-title">
       <div className="container contact-layout">
-        <motion.div className="contact-copy" initial={reduceMotion ? false : { opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.25 }} transition={{ duration: 0.55 }}>
+        <div className="contact-copy">
           <span className="eyebrow">Et si on construisait la suite ?</span>
           <h2 id="contact-title">Parlons de ce que vous voulez rendre possible.</h2>
-          <p>Un besoin à clarifier, une idée à explorer ou un produit à concevoir ? Présentez-nous votre projet. Nous commencerons par écouter.</p>
+          <p>Une idée à explorer, un produit à concevoir ? Présentez-nous votre projet — nous commençons par écouter.</p>
 
           <div className="contact-channels">
             <a href={`mailto:${site.email}`} className="contact-channel">
@@ -153,19 +202,15 @@ const Contact: React.FC = () => {
           </div>
 
           <div className="contact-aside"><span className="contact-mark" aria-hidden="true">B.</span><p><strong>Baobab</strong><br />Une équipe technologique à l’écoute de vos projets.</p></div>
-        </motion.div>
+        </div>
 
-        <motion.form
+        <form
           ref={formRef}
           className="contact-form"
           onSubmit={handleSubmit}
           noValidate
-          initial={reduceMotion ? false : { opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.65, delay: reduceMotion ? 0 : 0.1 }}
         >
-          <p className="form-intro">Choisissez un sujet, racontez-nous l’essentiel : le formulaire prépare un e-mail prêt à envoyer.</p>
+          <p className="form-intro">Le formulaire prépare un e-mail prêt à envoyer.</p>
 
           <div className="form-row">
             <div className="form-field">
@@ -232,7 +277,7 @@ const Contact: React.FC = () => {
           </div>
 
           <div className="form-submit-row">
-            <button className="cta-button" type="submit">Préparer mon message <span aria-hidden="true">↗</span></button>
+            <button className="cta-button" type="submit"><span className="cta-shine" aria-hidden="true" />Préparer mon message <span aria-hidden="true">↗</span></button>
             <span className="form-privacy">Aucun serveur ne stocke vos données.</span>
           </div>
 
@@ -265,7 +310,7 @@ const Contact: React.FC = () => {
           </AnimatePresence>
 
           <p className="form-setup-note">Vous préférez écrire directement ? <a href={`mailto:${site.email}`}>{site.email}</a></p>
-        </motion.form>
+        </form>
       </div>
     </section>
   )

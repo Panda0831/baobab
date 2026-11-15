@@ -1,18 +1,44 @@
-import React from 'react'
+import React, { useLayoutEffect, useRef } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
+import { gsap, SplitText } from '../gsap'
 import { site } from '../content'
 import logo from '../baobab-site/assets/logo-baobab.png'
 
 const Footer: React.FC = () => {
   const reduceMotion = useReducedMotion()
+  const rootRef = useRef<HTMLElement>(null)
   const item = {
     hidden: { opacity: 0, y: reduceMotion ? 0 : 14 },
     visible: { opacity: 1, y: 0 },
   }
 
+  // Signature display : les lettres se lèvent une fois, à l'arrivée dans le viewport.
+  useLayoutEffect(() => {
+    const mm = gsap.matchMedia()
+    mm.add('(prefers-reduced-motion: no-preference)', () => {
+      const name = rootRef.current?.querySelector('.footer-signature-name') as HTMLElement | null
+      if (!name) return
+      const split = SplitText.create(name, { type: 'words,chars', mask: 'chars' })
+      const tween = gsap.from(split.chars, {
+        yPercent: 118,
+        duration: 0.8,
+        stagger: 0.028,
+        ease: 'power4.out',
+        scrollTrigger: { trigger: name, start: 'top 92%', once: true },
+      })
+      return () => {
+        tween.scrollTrigger?.kill()
+        tween.kill()
+        split.revert()
+      }
+    })
+    return () => mm.revert()
+  }, [])
+
   return (
     <motion.footer
       className="footer"
+      ref={rootRef}
       initial={reduceMotion ? false : 'hidden'}
       whileInView="visible"
       viewport={{ once: true, amount: 0.15 }}

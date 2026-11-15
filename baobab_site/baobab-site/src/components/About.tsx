@@ -1,7 +1,8 @@
 import React, { useRef } from 'react'
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
+import { gsap, SplitText } from '../gsap'
 import { DURATION, EASE, fadeUpItem, stagger } from '../motion'
-import { useIsMobile } from '../hooks'
+import { useScrollScene, maskReveal, parallax } from '../scroll'
 
 const principles = [
   ['01', 'Comprendre', 'Partir du terrain, des contraintes et des personnes.', 'observe'],
@@ -11,33 +12,82 @@ const principles = [
 
 const About: React.FC = () => {
   const reduceMotion = useReducedMotion()
-  const isMobile = useIsMobile()
-  const calm = Boolean(reduceMotion) || isMobile
   const sectionRef = useRef<HTMLElement>(null)
-  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'end start'] })
-  const introY = useTransform(scrollYProgress, [0, 0.48, 1], [36, 0, -20])
-  const artworkY = useTransform(scrollYProgress, [0, 0.5, 1], [70, 0, -55])
-  const artworkRotate = useTransform(scrollYProgress, [0, 0.5, 1], [3.5, 0, -2])
+
+  // Déclaration cinétique (mots scrubbés), parallaxe de l'intro et de
+  // l'illustration, et dévoilement masqué de la maquette d'atelier.
+  useScrollScene(sectionRef, ({ scope, q }) => {
+    let split: SplitText | undefined
+    const statement = scope.querySelector('.kinetic-statement') as HTMLElement | null
+    if (statement) {
+      split = SplitText.create(statement, { type: 'words' })
+      gsap.fromTo(
+        split.words,
+        { opacity: 0.13 },
+        {
+          opacity: 1,
+          stagger: 0.05,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: statement,
+            start: 'top 82%',
+            end: 'top 28%',
+            scrub: true,
+          },
+        },
+      )
+    }
+
+    parallax(q('.method-intro'), { trigger: scope, from: { y: 36 }, to: { y: -20 } })
+    parallax(q('.method-glow'), { trigger: scope, from: { y: -40 }, to: { y: 60 } })
+
+    const artwork = q('.method-artwork')[0]
+    const artWindow = q('.art-window')[0]
+    if (artwork) {
+      parallax([artwork], { trigger: scope, from: { y: 70, rotate: 3.5 }, to: { y: -55, rotate: -2 } })
+    }
+    // Le cache ne s'applique qu'à la maquette : les cartes flottantes qui
+    // débordent du cadre restent entières.
+    if (artWindow) {
+      maskReveal([artWindow], {
+        trigger: artwork ?? artWindow,
+        start: 'top 84%',
+        duration: 1.1,
+        from: 'bottom',
+        inner: false,
+      })
+      parallax([artWindow], {
+        trigger: artwork ?? artWindow,
+        start: 'top 92%',
+        end: 'top 42%',
+        scrub: 0.8,
+        from: { scale: 0.94 },
+        to: { scale: 1 },
+      })
+    }
+
+    return () => split?.revert()
+  })
 
   return (
     <section id="about" className="about about-method" ref={sectionRef}>
       <div className="method-glow method-glow-one" aria-hidden="true" />
       <div className="method-glow method-glow-two" aria-hidden="true" />
       <div className="container">
-        <motion.div className="method-intro" style={{ y: calm ? 0 : introY }} initial={reduceMotion ? false : { opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: reduceMotion ? 0 : DURATION.base, ease: EASE }}>
+        <div className="method-intro">
           <span className="eyebrow">Notre approche</span>
-          <div><h2>La technologie doit éclaircir le quotidien.</h2><p>Nous partons du réel pour concevoir des expériences numériques qui trouvent naturellement leur place dans le travail des équipes et dans la vie de leurs utilisateurs.</p></div>
-        </motion.div>
+          <h2 className="kinetic-statement">La technologie doit éclaircir le <em>quotidien.</em></h2>
+        </div>
 
         <div className="method-stage">
           <motion.div className="method-story" initial={reduceMotion ? false : { opacity: 0, x: -24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.28 }} transition={{ duration: reduceMotion ? 0 : DURATION.long, ease: EASE }}>
             <p className="method-label">UN PARTENAIRE IMPLIQUÉ</p>
-            <p className="method-copy">Baobab est née d’une conviction simple : les outils numériques doivent aider les personnes à mieux avancer, pas ajouter de complexité. Notre équipe reste proche des besoins, des décisions et de ce qui rend un produit réellement utile.</p>
+            <p className="method-copy">Née d’une conviction simple : un bon outil numérique vous fait avancer, il ne vous ralentit pas.</p>
             <div className="method-note"><span aria-hidden="true">B.</span><p>Une petite équipe, avec le temps d’écouter et l’envie de bien faire.</p></div>
             <motion.a href="#contact" className="secondary-button" whileHover={reduceMotion ? undefined : { y: -3 }} whileTap={reduceMotion ? undefined : { scale: 0.98 }}>Rencontrez-nous <span aria-hidden="true">↗</span></motion.a>
           </motion.div>
 
-          <motion.div className="method-artwork" style={{ y: calm ? 0 : artworkY, rotate: calm ? 0 : artworkRotate }} initial={reduceMotion ? false : { opacity: 0, scale: 0.94 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: reduceMotion ? 0 : DURATION.long, ease: EASE }}>
+          <div className="method-artwork">
             <div className="art-orbit art-orbit-one" aria-hidden="true" />
             <motion.div className="art-orbit art-orbit-two" aria-hidden="true" animate={reduceMotion ? undefined : { rotate: 360 }} transition={{ duration: 28, repeat: Infinity, ease: 'linear' }} />
             <div className="art-window">
@@ -50,7 +100,7 @@ const About: React.FC = () => {
             </div>
             <motion.div className="art-float-card art-float-left" initial={reduceMotion ? false : { opacity: 0, x: -18 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: reduceMotion ? 0 : 0.55 }}><span className="float-dots" aria-hidden="true"><i /><i /><i /></span><b>Écouter</b><small>Ce qui compte vraiment</small></motion.div>
             <motion.div className="art-float-card art-float-right" initial={reduceMotion ? false : { opacity: 0, x: 18 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: reduceMotion ? 0 : 0.7 }}><span className="float-signal" aria-hidden="true" /><b>Construire</b><small>Une réponse juste</small></motion.div>
-          </motion.div>
+          </div>
         </div>
 
         <motion.div className="method-principles" initial={reduceMotion ? false : 'hidden'} whileInView="visible" viewport={{ once: true, amount: 0.2 }} variants={stagger(reduceMotion, 0.1)}>

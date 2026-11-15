@@ -1,7 +1,8 @@
 import React, { useRef, useState } from 'react'
-import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { DURATION, EASE } from '../motion'
-import { useIsMobile } from '../hooks'
+import { gsap } from '../gsap'
+import { useScrollScene, maskReveal, parallax } from '../scroll'
 
 const views = [
   {
@@ -37,15 +38,9 @@ const PlatformPreview: React.FC = () => {
   const [activeIndex, setActiveIndex] = useState(0)
   const [direction, setDirection] = useState(1)
   const reduceMotion = useReducedMotion()
-  const isMobile = useIsMobile()
   const sectionRef = useRef<HTMLElement>(null)
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([])
-  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'end start'] })
-  const windowY = useTransform(scrollYProgress, [0, 0.48, 1], [74, 0, -38])
-  const windowScale = useTransform(scrollYProgress, [0, 0.45, 1], [0.93, 1, 0.97])
-  const introY = useTransform(scrollYProgress, [0, 0.65, 1], [32, 0, -18])
   const activeView = views[activeIndex]
-  const calm = Boolean(reduceMotion) || isMobile
 
   const goTo = (index: number) => {
     const next = (index + views.length) % views.length
@@ -85,20 +80,96 @@ const PlatformPreview: React.FC = () => {
     }
   }
 
+  // Storytelling scroll : la section s'épingle et traverse les trois usages.
+  // Le dévoilement de la fenêtre et la parallaxe mobile passent par le même
+  // moteur, donc le nettoyage (pin, tweens, styles) est centralisé.
+  useScrollScene(sectionRef, ({ scope, q }) => {
+    const win = q('.platform-window')[0]
+    if (win) maskReveal([win], { trigger: scope, start: 'top 72%', duration: 1.1, inner: false })
+
+    const media = gsap.matchMedia()
+
+    media.add('(min-width: 900px) and (min-height: 700px)', () => {
+      const section = sectionRef.current
+      if (!section) return
+
+      section.classList.add('is-pinned')
+      const ghosts = q('.platform-ghost')
+      const intro = q('.platform-intro')[0]
+      const timeline = gsap.timeline({
+        defaults: { ease: 'none' },
+        scrollTrigger: {
+          trigger: section,
+          start: 'top top',
+          end: '+=230%',
+          pin: true,
+          scrub: 0.7,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            const index = Math.min(views.length - 1, Math.floor(self.progress * views.length))
+            setActiveIndex((current) => (current === index ? current : index))
+          },
+        },
+      })
+
+      timeline.to(q('.platform-storybar i'), { scaleX: 1, duration: 1 }, 0)
+      timeline.fromTo(
+        win,
+        { rotationY: -2.2, rotationX: 1.1, scale: 0.985 },
+        { rotationY: 2.2, rotationX: -1.1, scale: 1.015, duration: 1 },
+        0,
+      )
+      if (intro) timeline.to(intro, { y: -26, duration: 1 }, 0)
+
+      ghosts.forEach((ghost, i) => {
+        const enter = i === 0 ? 0 : i / views.length + 0.015
+        const exit = (i + 1) / views.length
+        timeline.fromTo(
+          ghost,
+          { autoAlpha: 0, yPercent: 12 },
+          { autoAlpha: 0.9, yPercent: 0, duration: i === 0 ? 0.05 : 0.06 },
+          enter,
+        )
+        if (i < ghosts.length - 1) {
+          timeline.to(ghost, { autoAlpha: 0, yPercent: -12, duration: 0.06 }, exit - 0.06)
+        }
+      })
+
+      return () => {
+        section.classList.remove('is-pinned')
+      }
+    })
+
+    // Sans épinglage, la section reste une simple scène parallaxe.
+    media.add('(max-width: 899px), (max-height: 699px)', () => {
+      const intro = q('.platform-intro')[0]
+      if (intro) parallax([intro], { trigger: scope, from: { y: 32 }, to: { y: -18 } })
+    })
+
+    return () => media.revert()
+  })
+
   return (
     <section className="platform" id="plateforme" ref={sectionRef}>
+      <div className="platform-ghost" aria-hidden="true">01</div>
+      <div className="platform-ghost" aria-hidden="true">02</div>
+      <div className="platform-ghost" aria-hidden="true">03</div>
+      <div className="platform-storybar" aria-hidden="true">
+        <i />
+        <span>0{activeIndex + 1} / 0{views.length}</span>
+      </div>
       <div className="container">
         <motion.div
           className="platform-intro"
-          style={{ y: calm ? 0 : introY }}
-          initial={reduceMotion ? false : { opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={reduceMotion ? false : { opacity: 0 }}
+          whileInView={{ opacity: 1 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: reduceMotion ? 0 : DURATION.base, ease: EASE }}
         >
           <span className="eyebrow">Une idée, plusieurs usages</span>
           <h2>Des outils numériques qui rendent les projets plus lisibles.</h2>
-          <p>Les bons produits rassemblent ce qui est aujourd’hui dispersé. Cette maquette illustre notre façon d’aborder une interface : clarifier les données, relier les usages et accompagner les équipes.</p>
+          <p>Clarifier les données, relier les usages, accompagner les équipes : notre façon d’aborder une interface.</p>
           <div className="platform-tabs" role="tablist" aria-label="Explorer les usages de la plateforme">
             {views.map((view, index) => (
               <button
@@ -134,7 +205,6 @@ const PlatformPreview: React.FC = () => {
           role="tabpanel"
           aria-labelledby={`platform-tab-${activeIndex}`}
           tabIndex={0}
-          style={{ y: calm ? 0 : windowY, scale: calm ? 1 : windowScale }}
           initial={reduceMotion ? false : { opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true, amount: 0.25 }}

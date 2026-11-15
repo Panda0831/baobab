@@ -1,5 +1,5 @@
-community manager: Tyno, Nick
-partenariat/affiliation: Barson, Cédric
+community manager: Tyno
+partenariat/affiliation: Barson
 relation client: Fitiavana, Tiah
 responsable commercial et finance: Tsiory, Mikajy
 

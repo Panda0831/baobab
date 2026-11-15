@@ -1,8 +1,9 @@
 import React, { useRef } from 'react'
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { requestService, services, type ServiceIcon } from '../content'
-import { DURATION, EASE, fadeUpItem, stagger } from '../motion'
-import { useIsMobile } from '../hooks'
+import { gsap, ScrollTrigger, revealHeader } from '../gsap'
+import { DURATION, EASE } from '../motion'
+import { useScrollScene, DESKTOP, revealEach, parallax, horizontalScroll } from '../scroll'
 
 const draw = {
   hidden: { pathLength: 0, opacity: 0.4 },
@@ -60,75 +61,174 @@ const AnimatedIcon: React.FC<{ name: ServiceIcon; reduceMotion: boolean }> = ({ 
 
 const Features: React.FC = () => {
   const reduceMotion = useReducedMotion()
-  const isMobile = useIsMobile()
   const sectionRef = useRef<HTMLElement>(null)
-  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'end start'] })
-  const headingY = useTransform(scrollYProgress, [0, 0.5, 1], [34, 0, -18])
-  const gridY = useTransform(scrollYProgress, [0, 0.5, 1], isMobile ? [0, 0, 0] : [52, 0, -28])
-  const accentX = useTransform(scrollYProgress, [0, 1], ['-20%', '120%'])
-  const parallax = reduceMotion || isMobile ? 0 : headingY
+  const trackWrapRef = useRef<HTMLDivElement>(null)
+  const trackRef = useRef<HTMLDivElement>(null)
+  const progressRef = useRef<HTMLElement>(null)
 
-  const handleSpotlight = (event: React.PointerEvent<HTMLElement>) => {
-    if (reduceMotion || event.pointerType !== 'mouse') return
-    const element = event.currentTarget
-    const rect = element.getBoundingClientRect()
-    element.style.setProperty('--spot-x', `${event.clientX - rect.left}px`)
-    element.style.setProperty('--spot-y', `${event.clientY - rect.top}px`)
-  }
+  // Mise en scène : rideau sur le titre, parallaxe des orbes, rail horizontal
+  // épinglé sur desktop, grille révélée ligne par ligne sur mobile.
+  useScrollScene(sectionRef, ({ scope, q }) => {
+    const header = scope.querySelector('.section-header')
+    const cleanupHeader = header ? revealHeader(header) : undefined
+    if (header) parallax([header], { trigger: scope, from: { y: 34 }, to: { y: -18 } })
+
+    const line = q('.services-motion-line')[0]
+    if (line) {
+      gsap.fromTo(line, { xPercent: -30 }, {
+        xPercent: 130,
+        ease: 'none',
+        scrollTrigger: { trigger: scope, start: 'top bottom', end: 'bottom top', scrub: 1 },
+      })
+    }
+    parallax(q('.services-orb-left'), { trigger: scope, from: { yPercent: -8 }, to: { yPercent: 10 } })
+    parallax(q('.services-orb-right'), { trigger: scope, from: { yPercent: 12 }, to: { yPercent: -12 } })
+
+    const media = gsap.matchMedia()
+
+    // Desktop : le rail se parcourt horizontalement, les cartes se dévoilent
+    // au fil de leur entrée réelle dans le viewport.
+    media.add(DESKTOP, () => {
+      const wrap = trackWrapRef.current
+      const track = trackRef.current
+      const section = sectionRef.current
+      if (!wrap || !track || !section) return
+
+      section.classList.add('is-horizontal')
+
+      const cards = gsap.utils.toArray<HTMLElement>(track.querySelectorAll('.feature-card'))
+      const revealed = new Set<HTMLElement>()
+      let started = false
+      gsap.set(cards, { autoAlpha: 0, y: 44 })
+
+      // Ne révèle que les cartes réellement arrivées dans le viewport. `started`
+      // évite de dévoiler tout le rail avant que la section ne soit atteinte.
+      const revealCards = (batch: HTMLElement[]) => {
+        batch.forEach((card) => revealed.add(card))
+        if (batch.length) {
+          gsap.to(batch, {
+            autoAlpha: 1,
+            y: 0,
+            duration: 0.7,
+            stagger: 0.08,
+            ease: 'power3.out',
+            overwrite: true,
+          })
+        }
+      }
+
+      const revealVisible = () => {
+        if (!started) return
+        const limit = window.innerWidth * 0.94
+        revealCards(cards.filter((card) => !revealed.has(card) && card.getBoundingClientRect().left < limit))
+      }
+
+      const { timeline } = horizontalScroll({
+        wrap,
+        track,
+        onProgress: (progress) => {
+          if (progress > 0) started = true
+          revealVisible()
+        },
+        onEnd: () => revealCards(cards.filter((card) => !revealed.has(card))),
+      })
+      if (progressRef.current) timeline.to(progressRef.current, { scaleX: 1, duration: 1, ease: 'none' }, 0)
+
+      ScrollTrigger.create({
+        trigger: wrap,
+        start: 'top 92%',
+        once: true,
+        onEnter: () => {
+          started = true
+          revealVisible()
+        },
+      })
+
+      return () => {
+        section.classList.remove('is-horizontal')
+        revealed.clear()
+      }
+    })
+
+    // Tablette / mobile (ou écran desktop très bas) : la grille reste verticale.
+    media.add('(max-width: 1023px), (max-height: 619px)', () => {
+      revealEach(q('.feature-card'), { start: 'top 90%', y: 26, duration: 0.7, columns: 2 })
+    })
+
+    return () => {
+      media.revert()
+      cleanupHeader?.()
+    }
+  })
+
+  // Inclinaison au pointeur : micro-interaction, réservée aux pointeurs fins.
+  React.useEffect(() => {
+    if (reduceMotion || !window.matchMedia('(pointer: fine)').matches) return
+    const section = sectionRef.current
+    if (!section) return
+
+    const cards = Array.from(section.querySelectorAll<HTMLElement>('.feature-card'))
+    const cleanups = cards.map((element) => {
+      const rotationX = gsap.quickTo(element, 'rotationX', { duration: 0.55, ease: 'power3' })
+      const rotationY = gsap.quickTo(element, 'rotationY', { duration: 0.55, ease: 'power3' })
+      const onMove = (event: PointerEvent) => {
+        const rect = element.getBoundingClientRect()
+        const px = (event.clientX - rect.left) / rect.width - 0.5
+        const py = (event.clientY - rect.top) / rect.height - 0.5
+        element.style.setProperty('--spot-x', `${event.clientX - rect.left}px`)
+        element.style.setProperty('--spot-y', `${event.clientY - rect.top}px`)
+        rotationX(py * -4.5)
+        rotationY(px * 5)
+      }
+      const onLeave = () => {
+        rotationX(0)
+        rotationY(0)
+      }
+      element.addEventListener('pointermove', onMove)
+      element.addEventListener('pointerleave', onLeave)
+      return () => {
+        element.removeEventListener('pointermove', onMove)
+        element.removeEventListener('pointerleave', onLeave)
+        gsap.set(element, { rotationX: 0, rotationY: 0 })
+      }
+    })
+
+    return () => cleanups.forEach((fn) => fn())
+  }, [reduceMotion])
 
   return (
     <section id="services" className="features" ref={sectionRef} aria-labelledby="services-title">
-      <motion.div className="services-motion-line" aria-hidden="true" style={{ x: reduceMotion ? '0%' : accentX }} />
+      <div className="services-motion-line" aria-hidden="true" />
       <div className="services-orb services-orb-left" aria-hidden="true" />
       <div className="services-orb services-orb-right" aria-hidden="true" />
       <div className="container">
-        <motion.div
-          className="section-header"
-          style={{ y: reduceMotion ? 0 : parallax }}
-          initial={reduceMotion ? false : { opacity: 0, y: 18 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.4 }}
-          transition={{ duration: reduceMotion ? 0 : DURATION.base, ease: EASE }}
-        >
+        <div className="section-header">
           <span className="eyebrow">Nos expertises</span>
           <h2 id="services-title">Du premier cadrage au produit en ligne.</h2>
-          <p>Une équipe pluridisciplinaire pour concevoir des solutions numériques utiles, pensées selon votre métier et vos utilisateurs.</p>
-        </motion.div>
-        <motion.div
-          className="features-grid"
-          style={{ y: reduceMotion ? 0 : gridY }}
-          initial={reduceMotion ? false : 'hidden'}
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.15 }}
-          variants={stagger(reduceMotion, 0.09)}
-        >
-          {services.map((service, index) => (
-            <motion.article
-              key={service.title}
-              className="feature-card"
-              variants={fadeUpItem(reduceMotion, 22)}
-              transition={{ duration: reduceMotion ? 0 : DURATION.base, delay: reduceMotion ? 0 : (index % 3) * 0.03, ease: EASE }}
-              whileHover={reduceMotion ? undefined : { y: -8, scale: 1.012 }}
-              onPointerMove={handleSpotlight}
-            >
-              <a className="feature-link" href="#contact" onClick={() => requestService(service.id)}>
-                <motion.div
-                  className="feature-icon"
-                  initial={reduceMotion ? false : { rotate: -8, scale: 0.8 }}
-                  whileInView={{ rotate: 0, scale: 1 }}
-                  viewport={{ once: true, amount: 0.45 }}
-                  whileHover={reduceMotion ? undefined : { rotate: -6, scale: 1.08 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                >
-                  <AnimatedIcon name={service.icon} reduceMotion={Boolean(reduceMotion)} />
-                </motion.div>
-                <h3>{service.title}</h3>
-                <p>{service.description}</p>
-                <span className="feature-cta">Parler de ce besoin <span aria-hidden="true">↗</span></span>
-              </a>
-            </motion.article>
-          ))}
-        </motion.div>
+          <p>Six expertises complémentaires, une seule équipe engagée.</p>
+        </div>
+        <div className="features-track-wrap" ref={trackWrapRef}>
+          <div className="features-grid" ref={trackRef}>
+            {services.map((service, index) => (
+              <article key={service.title} className="feature-card">
+                <i className="feature-topline" aria-hidden="true" />
+                <span className="feature-index" aria-hidden="true">0{index + 1}</span>
+                <a className="feature-link" href="#contact" onClick={() => requestService(service.id)}>
+                  <div className="feature-icon">
+                    <AnimatedIcon name={service.icon} reduceMotion={Boolean(reduceMotion)} />
+                  </div>
+                  <h3>{service.title}</h3>
+                  <p>{service.description}</p>
+                  <span className="feature-cta">Parler de ce besoin <span aria-hidden="true">↗</span></span>
+                </a>
+              </article>
+            ))}
+          </div>
+          <div className="features-progress" aria-hidden="true">
+            <div className="features-progress-track"><i ref={progressRef} /></div>
+            <span>06 expertises · défilez</span>
+          </div>
+        </div>
         <motion.div className="solution-footnote" initial={reduceMotion ? false : { opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.4 }} transition={{ duration: reduceMotion ? 0 : DURATION.base, ease: EASE }}>
           <span className="solution-footnote-mark" aria-hidden="true">B.</span>
           <p><strong>Une seule équipe, de la réflexion à la réalisation.</strong><br />Nous adaptons les outils et l’approche au projet, plutôt que l’inverse.</p>

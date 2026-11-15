@@ -5774,3 +5774,633 @@ body {
         transition: none;
     }
 }
+
+/* ==================================================================
+   COUCHE MOTION PREMIUM
+   Direction artistique : typographie display oversized (Clash Display),
+   révélations « rideau », storytelling scroll (GSAP ScrollTrigger),
+   micro-interactions Framer Motion. Tout ce qui bouge par frame est
+   transform/opacity uniquement.
+   ================================================================== */
+:root {
+    --font-display: "Clash Display", "Manrope", system-ui, sans-serif;
+    --display-weight: 500;
+}
+
+/* ---------- Typographie display oversized ---------- */
+.hero-cinematic h1,
+.section-header h2,
+.method-intro h2,
+.kinetic-statement,
+.process-intro h2,
+.faq-intro h2,
+.contact-copy h2 {
+    font-family: var(--font-display);
+    font-weight: var(--display-weight);
+    letter-spacing: -0.035em;
+}
+.hero-cinematic h1 {
+    font-size: clamp(3.4rem, 6.4vw, 6.4rem);
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+}
+.hero-cinematic h1 em {
+    position: relative;
+    color: var(--mid);
+}
+.section-header h2,
+.contact-copy h2 {
+    font-size: clamp(2.5rem, 4.6vw, 4.15rem);
+    line-height: 1.02;
+}
+.process-intro h2,
+.faq-intro h2 {
+    font-size: clamp(2.25rem, 4vw, 3.55rem);
+    line-height: 1.02;
+}
+.split-line {
+    /* Chaque masque SplitText clippe le texte qui monte */
+    padding-bottom: 0.06em;
+    margin-bottom: -0.06em;
+}
+
+/* ---------- Héro : entrée cinématique ---------- */
+.hero-cinematic .hero-lead {
+    max-width: 440px;
+}
+/* Fenêtre produit : reveal 3D piloté par GSAP */
+.hero-product .product-reveal {
+    transform-origin: 50% 92%;
+    backface-visibility: hidden;
+}
+.hero-product .product-wave path {
+    stroke-dasharray: 640;
+    stroke-dashoffset: 640;
+}
+@media (prefers-reduced-motion: reduce) {
+    .hero-product .product-wave path {
+        stroke-dashoffset: 0;
+    }
+}
+
+/* ---------- Solutions : cartes interactives ---------- */
+.features-grid {
+    transform-style: preserve-3d;
+}
+.feature-card {
+    position: relative;
+    transform-style: preserve-3d;
+    will-change: transform;
+    transition: border-color 0.25s var(--ease), background 0.25s var(--ease);
+}
+.feature-card:hover {
+    z-index: 2;
+}
+.feature-index {
+    position: absolute;
+    top: 20px;
+    right: 22px;
+    color: var(--mid);
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    opacity: 0.55;
+    transition: opacity 0.25s var(--ease), color 0.25s var(--ease);
+}
+.feature-card:hover .feature-index {
+    color: var(--ink);
+    opacity: 1;
+}
+.feature-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+.feature-cta span[aria-hidden] {
+    display: inline-block;
+    transition: transform 0.3s var(--ease);
+}
+.feature-card:hover .feature-cta span[aria-hidden] {
+    transform: translate(3px, -3px);
+}
+/* Liseré supérieur qui s'allume au survol (pseudo-élément : opacity only) */
+.feature-card .feature-topline {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 2px;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--peps), color-mix(in srgb, var(--peps) 20%, transparent));
+    opacity: 0;
+    transition: opacity 0.3s var(--ease);
+    pointer-events: none;
+}
+.feature-card:hover .feature-topline {
+    opacity: 1;
+}
+
+/* ---------- Plateforme : storytelling scroll (desktop) ---------- */
+.platform-ghost {
+    position: absolute;
+    z-index: 0;
+    right: 2vw;
+    top: 50%;
+    margin-top: -0.55em;
+    color: transparent;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(190px, 26vw, 340px);
+    line-height: 1;
+    -webkit-text-stroke: 1.5px color-mix(in srgb, var(--ink) 16%, transparent);
+    opacity: 0;
+    pointer-events: none;
+    user-select: none;
+}
+.platform.is-pinned {
+    display: grid;
+    align-content: center;
+    min-height: 100svh;
+    padding-top: 92px;
+    padding-bottom: 44px;
+    overflow: clip;
+}
+.platform.is-pinned .platform-intro {
+    max-width: 430px;
+}
+.platform.is-pinned .platform-intro h2 {
+    font-family: var(--font-display);
+    font-weight: var(--display-weight);
+    font-size: clamp(2.3rem, 4.1vw, 3.9rem);
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+}
+.platform.is-pinned .platform-window {
+    width: 100%;
+    max-width: 680px;
+    justify-self: end;
+}
+.platform.is-pinned .platform-intro > p {
+    max-width: 520px;
+}
+.platform.is-pinned .platform-tabs {
+    margin-top: 22px;
+}
+/* Barre de progression de l'histoire (scaleX piloté au scroll) */
+.platform-storybar {
+    position: absolute;
+    left: 0;
+    bottom: 26px;
+    width: min(340px, 34vw);
+    height: 2px;
+    border-radius: 99px;
+    background: color-mix(in srgb, var(--ink) 12%, transparent);
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
+.platform-storybar i {
+    position: absolute;
+    inset: 0;
+    background: var(--ink);
+    transform: scaleX(0);
+    transform-origin: left;
+}
+.platform.is-pinned .platform-storybar {
+    opacity: 1;
+}
+.platform-storybar span {
+    position: absolute;
+    right: 0;
+    bottom: 9px;
+    color: var(--muted);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+@media (max-width: 899px), (prefers-reduced-motion: reduce) {
+    .platform-ghost,
+    .platform-storybar {
+        display: none;
+    }
+}
+
+/* ---------- À propos : déclaration cinétique ---------- */
+.method-intro .kinetic-statement {
+    margin: 0;
+    max-width: 12.5em;
+    font-size: clamp(2.55rem, 5.6vw, 5.1rem);
+    line-height: 1.01;
+}
+.method-intro .kinetic-statement em {
+    color: var(--mid);
+    font-style: normal;
+}
+.method-copy {
+    font-size: 1.02rem;
+}
+@media (max-width: 800px) {
+    .method-intro .kinetic-statement {
+        max-width: 100%;
+    }
+}
+
+/* ---------- Méthode : rail dessiné au scroll ---------- */
+.process-steps {
+    position: relative;
+    padding-left: clamp(30px, 3.6vw, 44px);
+}
+.process-steps:before {
+    content: "";
+    position: absolute;
+    left: 7px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    border-radius: 99px;
+    background: color-mix(in srgb, var(--ink) 12%, transparent);
+}
+.process-progress {
+    position: absolute;
+    left: 7px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    border-radius: 99px;
+    background: linear-gradient(180deg, var(--peps), var(--ink));
+    transform: scaleY(0);
+    transform-origin: top;
+    pointer-events: none;
+}
+.process-step {
+    position: relative;
+}
+.process-step .process-dot {
+    position: absolute;
+    top: 34px;
+    left: calc(-1 * clamp(30px, 3.6vw, 44px) + 7px - 4px);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid color-mix(in srgb, var(--ink) 26%, transparent);
+    transition: background 0.35s var(--ease), border-color 0.35s var(--ease), transform 0.35s var(--ease);
+}
+.process-step.is-passed .process-dot {
+    background: var(--ink);
+    border-color: var(--ink);
+    transform: scale(1.15);
+}
+.process-step.is-passed .process-dot:after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: inherit;
+    background: color-mix(in srgb, var(--peps) 55%, transparent);
+    z-index: -1;
+    opacity: 0;
+    animation: dot-glow 0.6s var(--ease) forwards;
+}
+@keyframes dot-glow {
+    to {
+        opacity: 1;
+    }
+}
+.process-number {
+    color: var(--mid);
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 0.9rem;
+    letter-spacing: 0.05em;
+    transition: color 0.3s var(--ease);
+}
+.process-step.is-passed .process-number {
+    color: var(--ink);
+}
+.process-step h3 {
+    font-family: var(--font-display);
+    font-weight: var(--display-weight);
+    font-size: 1.28rem;
+    letter-spacing: -0.01em;
+}
+@media (max-width: 900px) {
+    .process-step .process-dot {
+        top: 30px;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .process-progress {
+        transform: scaleY(1);
+    }
+}
+
+/* ---------- Équipe : portraits interactifs ---------- */
+.team-member {
+    position: relative;
+}
+.member-portrait {
+    position: relative;
+    overflow: hidden;
+}
+.member-portrait img {
+    filter: saturate(0.72) contrast(1.04) brightness(0.99);
+    transform: scale(1.001);
+    transition:
+        transform 0.7s var(--ease),
+        filter 0.7s var(--ease);
+}
+.member-portrait:after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(200deg, transparent 55%, color-mix(in srgb, var(--ink) 34%, transparent));
+    opacity: 0;
+    transition: opacity 0.5s var(--ease);
+    pointer-events: none;
+}
+.team-member:hover .member-portrait img {
+    transform: scale(1.06);
+    filter: saturate(1) contrast(1) brightness(1);
+}
+.team-member:hover .member-portrait:after {
+    opacity: 1;
+}
+/* Lettre initiale typographique (hors numéro d'index) */
+.member-portrait > span:not(.member-number) {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(4rem, 6vw, 5.2rem);
+    line-height: 1;
+    transition: transform 0.55s var(--ease), opacity 0.55s var(--ease);
+}
+.team-member:hover .member-portrait > span:not(.member-number) {
+    transform: translateY(-6px) scale(1.05);
+}
+/* Anneau décoratif qui se révèle */
+.member-portrait:before {
+    content: "";
+    position: absolute;
+    right: -34px;
+    top: -34px;
+    width: 118px;
+    height: 118px;
+    border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
+    border-radius: 50%;
+    opacity: 0;
+    transform: scale(0.7);
+    transition:
+        opacity 0.45s var(--ease),
+        transform 0.55s var(--ease);
+    pointer-events: none;
+}
+.team-member:hover .member-portrait:before {
+    opacity: 1;
+    transform: scale(1);
+}
+.member-details h3 {
+    transition: color 0.25s var(--ease);
+}
+.team-member:hover .member-details h3 {
+    color: var(--ink);
+}
+@media (prefers-reduced-motion: reduce) {
+    .member-portrait img {
+        transition: filter 0.4s var(--ease);
+        transform: none;
+    }
+    .team-member:hover .member-portrait img {
+        transform: none;
+    }
+    .member-portrait:before {
+        display: none;
+    }
+}
+
+/* ---------- FAQ : accordéon animé ---------- */
+.faq-item summary,
+.faq-question {
+    font-family: "Manrope", sans-serif;
+}
+.faq-question {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    width: 100%;
+    min-height: 56px;
+    padding: 17px 20px;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    text-align: left;
+    color: var(--ink);
+    font:
+        700 0.95rem "Manrope",
+        sans-serif;
+    letter-spacing: -0.015em;
+    transition: color 0.2s var(--ease);
+}
+.faq-question:hover {
+    color: var(--mid);
+}
+.faq-question:focus-visible {
+    outline: 3px solid #91b660;
+    outline-offset: 3px;
+    border-radius: 14px;
+}
+.faq-question i {
+    display: grid;
+    place-items: center;
+    flex: 0 0 26px;
+    height: 26px;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    color: var(--ink);
+    font:
+        600 1rem "DM Sans",
+        sans-serif;
+    font-style: normal;
+    transition:
+        transform 0.28s var(--ease),
+        background 0.25s var(--ease),
+        border-color 0.25s var(--ease);
+}
+.faq-item.is-open .faq-question i {
+    transform: rotate(45deg);
+    background: var(--peps);
+    border-color: var(--peps);
+}
+.faq-answer {
+    overflow: hidden;
+}
+.faq-answer p {
+    padding: 0 20px 20px;
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.75;
+}
+@media (prefers-reduced-motion: reduce) {
+    .faq-answer {
+        overflow: visible;
+    }
+}
+
+/* ---------- Contact : entrée élégante + CTA aimanté ---------- */
+/* Le CTA aimanté : GSAP pilote la transform, la transition CSS ne doit pas la lisser */
+.form-submit-row .cta-button {
+    transition:
+        background 0.2s var(--ease),
+        color 0.2s var(--ease),
+        box-shadow 0.2s var(--ease);
+}
+/* CTA : reflet balayeur (opacity/transform uniquement) */
+.cta-button {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+}
+.cta-button .cta-shine {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(115deg, transparent 42%, #ffffff2e 50%, transparent 58%);
+    transform: translateX(-105%);
+    transition: transform 0.65s var(--ease);
+    pointer-events: none;
+}
+.cta-button:hover .cta-shine {
+    transform: translateX(105%);
+}
+.cta-button:focus-visible {
+    outline-color: var(--ink);
+}
+.contact .cta-button:focus-visible {
+    outline-color: var(--peps);
+}
+/* Champs : soulignement animé au focus (scaleX) */
+.form-field {
+    position: relative;
+}
+.form-field:after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 2px;
+    border-radius: 99px;
+    background: var(--peps);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s var(--ease);
+    pointer-events: none;
+    z-index: 1;
+}
+.form-field:focus-within:after {
+    transform: scaleX(1);
+}
+.form-field input:focus,
+.form-field textarea:focus,
+.form-field select:focus {
+    border-color: color-mix(in srgb, var(--ink) 34%, transparent);
+    outline: none;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--peps) 26%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+    .cta-button .cta-shine {
+        display: none;
+    }
+}
+
+/* ---------- Pied de page : signature display ---------- */
+.footer-signature {
+    align-items: end;
+}
+.footer-signature-name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(2.6rem, 6.4vw, 4.6rem);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+}
+.footer-signature-name span {
+    color: var(--mid);
+}
+
+/* ---------- filet de sécurité motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+    .process-step.is-passed .process-dot:after {
+        animation: none;
+        opacity: 1;
+    }
+}
+
+/* ==================================================================
+   SCÈNES SCROLL — rail horizontal des expertises
+   Activé uniquement par GSAP sur desktop + motion autorisé ; la grille
+   verticale reste le comportement par défaut (mobile, reduced motion,
+   écran court, sans JS).
+   ================================================================== */
+.features-track-wrap {
+    position: relative;
+}
+.features.is-horizontal .features-track-wrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: calc(100svh - 88px);
+    overflow: clip;
+    padding-block: 24px;
+}
+.features.is-horizontal .features-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    width: max-content;
+    max-width: none;
+    gap: 18px;
+    will-change: transform;
+}
+.features.is-horizontal .feature-card {
+    flex: 0 0 clamp(268px, 29vw, 360px);
+    min-height: 320px;
+}
+.features-progress {
+    display: none;
+}
+.features.is-horizontal .features-progress {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 30px;
+    color: var(--muted);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.features-progress-track {
+    position: relative;
+    flex: 1;
+    height: 2px;
+    border-radius: 99px;
+    background: color-mix(in srgb, var(--ink) 12%, transparent);
+    overflow: hidden;
+}
+.features-progress-track i {
+    position: absolute;
+    inset: 0;
+    background: var(--ink);
+    transform: scaleX(0);
+    transform-origin: left;
+}
+
+/* La signature du pied de page vit sur le fond encre : contraste inversé. */
+.footer-signature-name {
+    color: var(--bg);
+}
+.footer-signature-name span {
+    color: var(--peps);
+}
+
