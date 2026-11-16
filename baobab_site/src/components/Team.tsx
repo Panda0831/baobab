@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react'
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { AnimatePresence, motion, useInView, useReducedMotion } from 'framer-motion'
 import { gsap, revealHeader } from '../gsap'
 import { useScrollScene } from '../scroll'
 import { fadeUpItem, stagger } from '../motion'
@@ -51,6 +51,8 @@ const members: TeamMember[] = [
 const Team: React.FC = () => {
   const reduceMotion = useReducedMotion()
   const sectionRef = useRef<HTMLElement>(null)
+  const gridRef = useRef<HTMLDivElement>(null)
+  const isGridInView = useInView(gridRef, { once: true, amount: 0.08 })
   const [activePole, setActivePole] = useState<Pole | 'tous'>('tous')
   const visibleMembers = activePole === 'tous' ? members : members.filter((member) => member.pole === activePole)
 
@@ -136,11 +138,11 @@ const Team: React.FC = () => {
         </p>
 
         <motion.div
+          ref={gridRef}
           className="team-grid"
           layout
           initial={reduceMotion ? false : 'hidden'}
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.08 }}
+          animate={isGridInView ? 'visible' : 'hidden'}
           variants={stagger(reduceMotion, 0.055)}
         >
           <AnimatePresence mode="popLayout" initial={false}>
