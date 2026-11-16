@@ -6176,6 +6176,179 @@ body {
     }
 }
 
+/* ---------- Cartes d’équipe : verso avec détails ---------- */
+.team-member {
+    perspective: 1200px;
+}
+.team-member:focus-visible {
+    outline: 3px solid var(--mid);
+    outline-offset: 4px;
+}
+.team-card-inner {
+    position: relative;
+    width: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.78s var(--ease);
+}
+.team-card-inner.is-flipped {
+    transform: rotateY(180deg);
+}
+.team-card-front {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+.team-card-back {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    overflow: hidden;
+    padding: clamp(11px, 1vw, 14px);
+    border-radius: inherit;
+    background:
+        radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--peps) 19%, transparent), transparent 42%),
+        var(--paper);
+    color: var(--ink);
+    transform: rotateY(180deg);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+.member-profile-heading {
+    flex: 0 0 auto;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--line);
+}
+.member-profile-heading .eyebrow {
+    font-size: 0.62rem;
+}
+.member-profile-heading h3 {
+    margin-top: 3px;
+    font-family: var(--font-display);
+    font-size: clamp(0.95rem, 1.25vw, 1.16rem);
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+.member-profile-heading p {
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 0.76rem;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+.member-profile-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding-right: 5px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-color: var(--mid) transparent;
+    scrollbar-width: thin;
+}
+.member-profile-scroll::-webkit-scrollbar {
+    width: 5px;
+}
+.member-profile-scroll::-webkit-scrollbar-thumb {
+    border-radius: 99px;
+    background: var(--mid);
+}
+.member-profile-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+.member-profile-section + .member-profile-section {
+    margin-top: 8px;
+    padding-top: 7px;
+    border-top: 1px solid var(--line);
+}
+.member-profile-section h4 {
+    margin-bottom: 3px;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 0.74rem;
+    font-weight: 700;
+}
+.member-profile-section > p {
+    color: var(--muted);
+    font-size: 0.72rem;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+.member-profile-fields {
+    display: grid;
+    gap: 4px;
+}
+.profile-field {
+    display: grid;
+    grid-template-columns: minmax(62px, 0.36fr) minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+    font-size: 0.68rem;
+    line-height: 1.4;
+}
+.profile-field dt {
+    color: var(--muted);
+    font-weight: 600;
+}
+.profile-field dd {
+    min-width: 0;
+    color: var(--ink);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+.profile-field a {
+    color: inherit;
+    text-decoration-color: var(--mid);
+    text-underline-offset: 2px;
+}
+.profile-field a:hover {
+    color: var(--muted);
+}
+.profile-unavailable {
+    color: var(--muted);
+    font-weight: 400;
+}
+@media (max-width: 620px) {
+    .team-card-inner {
+        height: 320px;
+    }
+    .team-card-front {
+        display: flex;
+        height: 100%;
+        flex-direction: column;
+    }
+    .team-card-front .member-portrait {
+        flex: 1 1 auto;
+        min-height: 0;
+        aspect-ratio: auto;
+    }
+    .team-card-back {
+        gap: 4px;
+        padding: 10px;
+    }
+    .member-profile-heading {
+        padding-bottom: 5px;
+    }
+    .member-profile-heading h3 {
+        font-size: 0.92rem;
+    }
+    .member-profile-heading p {
+        font-size: 0.68rem;
+    }
+    .member-profile-section + .member-profile-section {
+        margin-top: 7px;
+        padding-top: 6px;
+    }
+    .member-profile-section > p {
+        font-size: 0.68rem;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .team-card-inner {
+        transition-duration: 0.01ms;
+    }
+}
+
 /* ---------- FAQ : accordéon animé ---------- */
 .faq-item summary,
 .faq-question {
@@ -6403,4 +6576,3 @@ body {
 .footer-signature-name span {
     color: var(--peps);
 }
-
