@@ -1,0 +1,154 @@
+{
+  "equipe": [
+    {
+      "nom": "Fanamby",
+      "poste": "CEO",
+      "description": null,
+      "contact": {
+        "email": null,
+        "telephone": null,
+        "whatsapp": null
+      },
+      "reseaux_sociaux": {
+        "linkedin": null,
+        "facebook": null,
+        "instagram": null
+      }
+    },
+    {
+      "nom": "Tiah Anthonio",
+      "poste": null,
+      "description": "Polyvalent, à l’écoute et doté d’un bon esprit d’analyse, je fais preuve de rigueur, d’adaptabilité et d’un sens aigu du relationnel afin de contribuer au développement de l’agence et à la satisfaction de nos clients.",
+      "contact": {
+        "email": "anthoniotiah@gmail.com",
+        "telephone": "+261 32 85 716 30",
+        "whatsapp": null
+      },
+      "reseaux_sociaux": {
+        "linkedin": "Tiah Anthonio",
+        "facebook": null,
+        "instagram": null
+      }
+    },
+    {
+      "nom": "Binks Tyno",
+      "poste": "Community Manager",
+      "description": "Je suis dans ce domaine, donc j'aime communiquer, comprendre les gens et créer du lien. Je m'adapte facilement à chaque communauté, à chaque marque et à chaque tendance. Je suis sérieux et responsable, je sais gérer une page, respecter les délais et l'image d'une entreprise. Je suis curieux, j'aime découvrir les nouveaux réseaux et les nouvelles tendances.",
+      "contact": {
+        "email": "tynorazafindrazaka91@gmail.com",
+        "telephone": "0375362969",
+        "whatsapp": null
+      },
+      "reseaux_sociaux": {
+        "linkedin": null,
+        "facebook": "Binks Tyno",
+        "instagram": "binkskilldead"
+      }
+    },
+    {
+      "nom": "Barson",
+      "poste": "Responsable des partenariats et de l’affiliation",
+      "description": "Responsable des partenariats et de l’affiliation, je suis une personne dynamique, organisée et à l’écoute. J’aime développer de nouvelles collaborations, créer des opportunités et contribuer à la réussite des projets grâce à mon sens du relationnel et ma motivation.",
+      "contact": {
+        "email": "Lucrabarson12@gmail.com",
+        "telephone": "0379440395",
+        "whatsapp": null
+      },
+      "reseaux_sociaux": {
+        "linkedin": null,
+        "facebook": null,
+        "instagram": null
+      }
+    },
+    {
+      "nom": "Rasolofoheriniaina Ny Fitiavana",
+      "poste": "Responsable clients",
+      "description": "En tant que responsable clients, je m'engage à offrir à chaque client un accompagnement personnalisé, réactif et de qualité. De l'accueil à la fidélisation, en passant par le suivi des demandes et la résolution des besoins, ma mission est de créer une relation de confiance durable et de garantir une expérience client irréprochable.",
+      "contact": {
+        "email": "Rasolofoheriniainasariaka@gmail.com",
+        "telephone": null,
+        "whatsapp": "0348353697"
+      },
+      "reseaux_sociaux": {
+        "linkedin": "Rasolofoheriniaina Ny Fitiavana",
+        "facebook": null,
+        "instagram": null
+      }
+    },
+    {
+      "nom": "Tsiory Raza",
+      "poste": "Responsable commercial",
+      "description": "Je suis dans le domaine commercial. Je m'adapte facilement à toutes les situations et à toutes les personnes. Je suis sérieuse et responsable dans mon travail, curieuse, j'aime toujours apprendre de nouvelles choses. Et je suis passionné par les jeux de réflexion, parce que j'aime réfléchir, analyser et trouver des solutions.",
+      "contact": {
+        "email": "tsioryrav80@gmail.com",
+        "telephone": "0372561992",
+        "whatsapp": null
+      },
+      "reseaux_sociaux": {
+        "linkedin": null,
+        "facebook": "Tsiory Raza",
+        "instagram": "nyainaa07"
+      }
+    },
+    {
+      "nom": "Mikajy",
+      "poste": "Responsable financier",
+      "description": "Je gère les finances de l’agence ; j’aime les chiffres, les projets concrets et trouver des solutions qui fonctionnent vraiment. Quand je ne suis pas dans mes tableaux Excel, tu me trouveras probablement devant un jeu vidéo ou un animé.",
+      "contact": {
+        "email": "fehizororasolofoniaina@gmail.com",
+        "telephone": "0386920038",
+        "whatsapp": null
+      },
+      "reseaux_sociaux": {
+        "linkedin": null,
+        "facebook": null,
+        "instagram": null
+      }
+    },
+    {
+      "nom": "Ryan",
+      "poste": "Développeur full-stack",
+      "description": null,
+      "contact": {
+        "email": null,
+        "telephone": null,
+        "whatsapp": null
+      },
+      "reseaux_sociaux": {
+        "linkedin": null,
+        "facebook": null,
+        "instagram": null
+      }
+    },
+    {
+      "nom": "Andy",
+      "poste": "Développeur full-stack",
+      "description": null,
+      "contact": {
+        "email": null,
+        "telephone": null,
+        "whatsapp": null
+      },
+      "reseaux_sociaux": {
+        "linkedin": null,
+        "facebook": null,
+        "instagram": null
+      }
+    },
+    {
+      "nom": "Erick",
+      "poste": "Développeur full-stack",
+      "description": null,
+      "contact": {
+        "email": null,
+        "telephone": null,
+        "whatsapp": null
+      },
+      "reseaux_sociaux": {
+        "linkedin": null,
+        "facebook": null,
+        "instagram": null
+      }
+    }
+  ]
+}
