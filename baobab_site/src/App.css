@@ -6220,7 +6220,12 @@ body {
     border-bottom: 1px solid var(--line);
 }
 .member-profile-heading .eyebrow {
+    gap: 0;
+    margin-bottom: 2px;
     font-size: 0.62rem;
+}
+.member-profile-heading .eyebrow:before {
+    display: none;
 }
 .member-profile-heading h3 {
     margin-top: 3px;
@@ -6256,9 +6261,14 @@ body {
 .member-profile-scroll::-webkit-scrollbar-track {
     background: transparent;
 }
+.team-card-back .member-profile-section {
+    margin: 0;
+    padding: 0;
+    background: none;
+}
 .member-profile-section + .member-profile-section {
-    margin-top: 8px;
-    padding-top: 7px;
+    margin-top: 5px;
+    padding-top: 4px;
     border-top: 1px solid var(--line);
 }
 .member-profile-section h4 {
